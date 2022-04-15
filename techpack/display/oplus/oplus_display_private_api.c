@@ -39,6 +39,8 @@
 #include "oplus_adfr.h"
 #endif
 
+#include "../../../drivers/input/oplus_fp_drivers/include/oplus_fp_common.h"
+
 extern int hbm_mode;
 int spr_mode = 0;
 int round_count_mode = 0;
@@ -119,6 +121,8 @@ extern PANEL_VOLTAGE_BAK panel_vol_bak[PANEL_VOLTAGE_ID_MAX];
 extern u32 panel_pwr_vg_base;
 extern int seed_mode;
 extern int aod_light_mode;
+
+struct fp_underscreen_info fp_state = {0};
 
 #define PANEL_CMD_MIN_TX_COUNT 2
 #define OPLUS_ATTR(_name, _mode, _show, _store) \
@@ -3379,6 +3383,12 @@ static ssize_t oplus_set_shutdownflag(struct kobject *obj,
 }
 #endif /*OPLUS_FEATURE_TP_BASIC*/
 
+static ssize_t oplus_display_get_fp_state(struct kobject *obj,
+	struct kobj_attribute *attr, char *buf)
+{
+	return sprintf(buf, "%d,%d,%d\n", fp_state.x, fp_state.y, fp_state.touch_state);
+}
+
 static struct kobject *oplus_display_kobj;
 
 static OPLUS_ATTR(hbm, S_IRUGO | S_IWUSR, oplus_display_get_hbm,
@@ -3454,6 +3464,8 @@ static OPLUS_ATTR(shutdownflag, S_IRUGO | S_IWUSR, oplus_get_shutdownflag,
 		   oplus_set_shutdownflag);
 #endif /*OPLUS_FEATURE_TP_BASIC*/
 
+static OPLUS_ATTR(fp_state, S_IRUGO, oplus_display_get_fp_state, NULL);
+
 #ifdef OPLUS_BUG_STABILITY
 static OPLUS_ATTR(adfr_debug, S_IRUGO|S_IWUSR, oplus_adfr_get_debug, oplus_adfr_set_debug);
 static OPLUS_ATTR(vsync_switch, S_IRUGO|S_IWUSR, oplus_get_vsync_switch, oplus_set_vsync_switch);
@@ -3515,6 +3527,7 @@ static struct attribute *oplus_display_attrs[] = {
 	&oplus_attr_dither.attr,
 	/* fp type config */
 	&oplus_attr_fp_type.attr,
+	&oplus_attr_fp_state.attr,
 	NULL,	/* need to NULL terminate the list of attributes */
 };
 
@@ -3537,6 +3550,14 @@ int oplus_display_get_resolution(unsigned int *xres, unsigned int *yres)
 	return 0;
 }
 EXPORT_SYMBOL(oplus_display_get_resolution);
+
+static int oplus_opticalfp_irq_handler(struct fp_underscreen_info *tp_info) {
+	fp_state.x = tp_info->x;
+	fp_state.y = tp_info->y;
+	fp_state.touch_state = tp_info->touch_state;
+	sysfs_notify(kernel_kobj, "oplus_display", oplus_attr_fp_state.attr.name);
+	return IRQ_HANDLED;
+}
 
 extern int oplus_display_panel_init(void);
 int oplus_display_private_api_init(void)
@@ -3570,6 +3591,12 @@ int oplus_display_private_api_init(void)
 
 	if (oplus_ffl_thread_init()) {
 		pr_err("fail to init oplus_ffl_thread\n");
+	}
+
+	opticalfp_irq_handler_register(oplus_opticalfp_irq_handler);
+
+	if (retval) {
+		goto error_remove_sysfs_group;
 	}
 
 	if(oplus_display_panel_init())
