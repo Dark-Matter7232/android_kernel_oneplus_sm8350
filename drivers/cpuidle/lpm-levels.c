@@ -1419,9 +1419,9 @@ static int lpm_cpuidle_enter(struct cpuidle_device *dev,
 	cpuidle_clear_idle_cpu(dev->cpu);
 	success = (ret == 0);
 
-exit:
 	if (idx == cpu->nlevels - 1)
 		disable_rimps_timer(cpu);
+exit:
 	end_time = ktime_to_ns(ktime_get());
 	lpm_stats_cpu_exit(idx, end_time, success);
 
