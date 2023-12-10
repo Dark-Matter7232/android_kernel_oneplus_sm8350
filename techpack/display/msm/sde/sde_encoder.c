@@ -4854,6 +4854,8 @@ static int _sde_encoder_reset_ctl_hw(struct drm_encoder *drm_enc)
 void sde_encoder_kickoff(struct drm_encoder *drm_enc, bool is_error,
 		bool config_changed)
 {
+	static bool has_run;
+	struct sde_connector *sde_conn;
 	struct sde_encoder_virt *sde_enc;
 	struct sde_encoder_phys *phys;
 	unsigned int i;
@@ -4915,6 +4917,8 @@ void sde_encoder_kickoff(struct drm_encoder *drm_enc, bool is_error,
 		SDE_EVT32(DRMID(drm_enc), i, SDE_EVTLOG_FUNC_CASE1);
 	}
 
+	sde_conn = to_sde_connector(sde_enc->cur_master->connector);
+
 #ifdef OPLUS_BUG_STABILITY
 /* Add for backlight smooths */
 	if (sde_enc && sde_enc->cur_master && sde_enc->cur_master->connector) {
@@ -4950,6 +4954,12 @@ void sde_encoder_kickoff(struct drm_encoder *drm_enc, bool is_error,
 	iris_sde_encoder_sync_panel_brightness(sde_enc->num_phys_encs,
 			sde_enc->phys_encs[0]);
 #endif
+
+	if (unlikely(!has_run)) {
+		has_run = true;
+		_sde_connector_report_panel_dead(sde_conn, false);
+	}
+
 	SDE_ATRACE_END("encoder_kickoff");
 #ifdef OPLUS_BUG_STABILITY
 	sde_connector_update_backlight(sde_enc->cur_master->connector, true);
