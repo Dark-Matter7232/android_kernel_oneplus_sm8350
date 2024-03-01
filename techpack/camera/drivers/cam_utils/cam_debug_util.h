@@ -136,10 +136,7 @@ const char *cam_get_module_name(unsigned int module_id);
  * @args     :  Arguments which needs to be print in log
  */
 #define CAM_TRACE(__module, fmt, args...)                                      \
-	({                                                                     \
-		cam_debug_trace(CAM_TYPE_TRACE, __module, __func__, __LINE__,  \
-			fmt, ##args);                                          \
-	})
+	cam_debug_log(__module, __func__, __LINE__, fmt, ##args)
 
 /*
  * CAM_ERR
