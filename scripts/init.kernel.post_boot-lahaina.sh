@@ -82,11 +82,6 @@ if ! mount | grep -q "$BIND" && [ ! -e /sbin/recovery ] && [ ! -e /dev/ep/.post_
 
   echo 0 > /proc/sys/vm/page-cluster
 
-  # configure input boost settings
-  chown system:system /sys/devices/system/cpu/cpu_boost/input_boost_freq
-  echo "0:1401600" > /sys/devices/system/cpu/cpu_boost/input_boost_freq
-  echo 200 > /sys/devices/system/cpu/cpu_boost/input_boost_ms
-
   #liochen@SYSTEM, 2020/11/02, Add for enable ufs performance
   echo 0 > /sys/class/scsi_host/host0/../../../clkscale_enable
 
@@ -120,7 +115,7 @@ echo 0-6 > /dev/cpuset/foreground/cpus
 
 # configure governor settings for silver cluster
 echo "schedutil" > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
-echo 806400 > /sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq
+echo 691200 > /sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq
 
 # configure governor settings for gold cluster
 echo "schedutil" > /sys/devices/system/cpu/cpufreq/policy4/scaling_governor
