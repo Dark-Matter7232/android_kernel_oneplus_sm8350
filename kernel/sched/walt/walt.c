@@ -3521,7 +3521,7 @@ static inline void __walt_irq_work_locked(bool is_migration, struct cpumask *loc
 						cpu_online_mask);
 		num_cpus = cpumask_weight(&cluster_online_cpus);
 		for_each_cpu(cpu, &cluster_online_cpus) {
-			int flag = 0;
+			int flag = SCHED_CPUFREQ_WALT;
 
 			rq = cpu_rq(cpu);
 
