@@ -3115,9 +3115,11 @@ static int battery_psy_get_prop(struct power_supply *psy,
 		pval->intval = chip->batt_rm * 1000;
 		break;
 	case POWER_SUPPLY_PROP_CYCLE_COUNT:
-		pval->intval = chip->charger_cycle;
+		pval->intval = oplus_gauge_get_batt_cc();
 		break;
 	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
+		pval->intval = chip->batt_capacity_mah * 1000;
+		break;
 	case POWER_SUPPLY_PROP_CHARGE_FULL:
 		pval->intval = chip->batt_fcc * 1000;
 		break;
@@ -5959,6 +5961,12 @@ bool oplus_usbtemp_change_curr_range(struct oplus_chg_chip *chip, int retry_cnt,
 			return true;
 		}
 	}
+
+	if (curr_range_change == false || chip->usbtemp_curr_status != OPLUS_USBTEMP_LOW_CURR) {
+		last_curr_change_usb_temp_r = chip->usb_temp_r;
+		last_curr_change_usb_temp_l = chip->usb_temp_l;
+	}
+
 	return false;
 }
 

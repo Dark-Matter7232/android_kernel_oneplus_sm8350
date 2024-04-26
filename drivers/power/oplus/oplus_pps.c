@@ -4927,9 +4927,7 @@ void oplus_pps_print_log(void)
 	if (!chip || !chip->pps_support_type)
 		return;
 
-	if (oplus_chg_get_voocphy_support() != NO_VOOCPHY)
-		oplus_pps_read_ibus();
-
+	oplus_pps_read_ibus();
 	pps_err("PPS[ %d / %d / %d / %d / %d / %d / %d / %d]current[%d / %d / %d / %d]\n",
 		chip->pps_support_type, chip->pps_status, chip->pps_chging,
 		chip->pps_power, chip->pps_adapter_type,

@@ -15590,20 +15590,6 @@ bool oplus_chg_get_led_status(void)
 	}
 }
 
-int oplus_chg_adspvoocphy_get_abnormal_adapter_disconnect_cnt(void)
-{
-	struct oplus_chg_chip *chip = g_charger_chip;
-
-	if (g_charger_chip == NULL)
-                return 0;
-
-	if (oplus_chg_get_voocphy_support() != ADSP_VOOCPHY ||
-		!chip->chg_ops->get_abnormal_adapter_disconnect_cnt)
-		return 0;
-
-	return chip->chg_ops->get_abnormal_adapter_disconnect_cnt();
-}
-
 #if IS_ENABLED(CONFIG_OPLUS_CHG_TEST_KIT)
 void oplus_test_kit_unregister(void)
 {
