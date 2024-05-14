@@ -122,6 +122,8 @@ __read_mostly unsigned int sysctl_sched_asym_cap_sibling_freq_match_pct = 100;
 __read_mostly unsigned int sysctl_sched_asym_cap_sibling_freq_match_en;
 static cpumask_t asym_freq_match_cpus = CPU_MASK_NONE;
 
+__read_mostly unsigned int sched_ravg_hist_size = RAVG_HIST_SIZE_MAX;
+
 static __read_mostly unsigned int sched_io_is_busy = 1;
 
 __read_mostly unsigned int sysctl_sched_window_stats_policy =
@@ -1879,10 +1881,10 @@ static void update_history(struct rq *rq, struct task_struct *p,
 	/* Push new 'runtime' value onto stack */
 	for (; samples > 0; samples--) {
 		hist[p->wts.cidx] = runtime;
-		p->wts.cidx = ++(p->wts.cidx) & RAVG_HIST_MASK;
+		p->wts.cidx = ++(p->wts.cidx) % sched_ravg_hist_size;
 	}
 
-	for (i = 0; i < RAVG_HIST_SIZE; i++) {
+	for (i = 0; i < sched_ravg_hist_size; i++) {
 		sum += hist[i];
 		if (hist[i] > max)
 			max = hist[i];
@@ -1895,7 +1897,7 @@ static void update_history(struct rq *rq, struct task_struct *p,
 	} else if (sysctl_sched_window_stats_policy == WINDOW_STATS_MAX) {
 		demand = max;
 	} else {
-		avg = sum >> RAVG_HIST_SHIFT;
+		avg = div64_u64(sum, sched_ravg_hist_size);
 		if (sysctl_sched_window_stats_policy == WINDOW_STATS_AVG)
 			demand = avg;
 		else
@@ -1927,7 +1929,7 @@ static void update_history(struct rq *rq, struct task_struct *p,
 
 	p->wts.demand = demand;
 	p->wts.demand_scaled = demand_scaled;
-	p->wts.coloc_demand = sum >> RAVG_HIST_SHIFT;
+	p->wts.coloc_demand = div64_u64(sum, sched_ravg_hist_size);
 	p->wts.pred_demand = pred_demand;
 	p->wts.pred_demand_scaled = pred_demand_scaled;
 
@@ -2234,7 +2236,7 @@ void init_new_task_load(struct task_struct *p)
 	p->wts.coloc_demand = init_load_windows;
 	p->wts.pred_demand = 0;
 	p->wts.pred_demand_scaled = 0;
-	for (i = 0; i < RAVG_HIST_SIZE; ++i)
+	for (i = 0; i < RAVG_HIST_SIZE_MAX; ++i)
 		p->wts.sum_history[i] = init_load_windows;
 	p->wts.misfit = false;
 	p->wts.rtg_high_prio = false;
@@ -2258,7 +2260,7 @@ void reset_task_stats(struct task_struct *p)
 	p->wts.sum = 0;
 	p->wts.demand = 0;
 	p->wts.coloc_demand = 0;
-	for (i = 0; i < RAVG_HIST_SIZE; ++i)
+	for (i = 0; i < RAVG_HIST_SIZE_MAX; ++i)
 		p->wts.sum_history[i] = 0;
 	p->wts.curr_window = 0;
 	p->wts.prev_window = 0;
@@ -2813,7 +2815,7 @@ static void _set_preferred_cluster(struct walt_related_thread_group *grp)
 		}
 
 		if (p->wts.mark_start < wallclock -
-		    (sched_ravg_window * RAVG_HIST_SIZE))
+		    (sched_ravg_window * sched_ravg_hist_size))
 			continue;
 
 		combined_demand += p->wts.coloc_demand;
@@ -3665,7 +3667,7 @@ void walt_fill_ta_data(struct core_ctl_notif_data *data)
 
 	list_for_each_entry(p, &grp->tasks, wts.grp_list) {
 		if (p->wts.mark_start < wallclock -
-		    (sched_ravg_window * RAVG_HIST_SIZE))
+		    (sched_ravg_window * sched_ravg_hist_size))
 			continue;
 
 		total_demand += p->wts.coloc_demand;
