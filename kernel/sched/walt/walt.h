@@ -211,10 +211,10 @@ extern void rotation_ctl_init(void);
 #define core_ctl_init rotation_ctl_init
 #endif
 
-#if defined(CONFIG_SCHED_WALT_ORIG) && defined(CONFIG_CPU_FREQ)
+#ifdef CONFIG_CPU_FREQ
 extern int cpu_boost_init(void);
 #else
-static inline void cpu_boost_init(void) { }
+static inline int cpu_boost_init(void) { }
 #endif
 
 #else /* CONFIG_SCHED_WALT */
