@@ -1189,10 +1189,6 @@ static irqreturn_t tp_irq_thread_fn(int irq, void *dev_id)
 {
 	struct touchpanel_data *ts = (struct touchpanel_data *)dev_id;
 
-	if (ts->ws) {
-		__pm_stay_awake(ts->ws);
-	}
-
 	/*for qaulcomn to stop cpu go to C4 idle state*/
 #ifdef CONFIG_TOUCHIRQ_UPDATE_QOS
 
@@ -1263,10 +1259,6 @@ exit:
 	}
 
 #endif
-
-        if (ts->ws) {
-                __pm_relax(ts->ws);
-        }
 
 	return IRQ_HANDLED;
 }
