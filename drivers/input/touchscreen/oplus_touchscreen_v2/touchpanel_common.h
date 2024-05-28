@@ -17,11 +17,6 @@
 #include "message_list.h"
 #include "tp_ioctl.h"
 
-#ifdef CONFIG_TOUCHIRQ_UPDATE_QOS
-#include <linux/pm_qos.h>
-#define PM_QOS_TOUCH_WAKEUP_VALUE 400
-#endif
-
 #ifndef CONFIG_REMOVE_OPLUS_FUNCTION
 #include <soc/oplus/device_info.h>
 #endif
@@ -899,16 +894,6 @@ struct touchpanel_data {
 	u8 *log_buf;
 	u8 *gesture_buf;
 	bool gesture_debug_sta;
-#endif
-	/******For QOS area********/
-#ifdef CONFIG_TOUCHIRQ_UPDATE_QOS
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,10,0)
-	struct dev_pm_qos_request pm_qos_req;
-#else
-	struct pm_qos_request pm_qos_req;
-#endif
-	int pm_qos_value;
-	int pm_qos_state;
 #endif
 	/*******i2c spi bus data*****/
 	struct interface_data interface_data;
