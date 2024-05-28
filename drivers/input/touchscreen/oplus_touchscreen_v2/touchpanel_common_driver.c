@@ -58,11 +58,6 @@
 #endif
 
 /*******Part0:LOG TAG Declear************************/
-#if defined(CONFIG_TOUCHPANEL_MTK_PLATFORM) && defined(CONFIG_TOUCHIRQ_UPDATE_QOS)
-#error CONFIG_TOUCHPANEL_MTK_PLATFORM and CONFIG_TOUCHIRQ_UPDATE_QOS
-#error can not defined same time
-#endif
-
 #define TP_ALL_GESTURE_SUPPORT \
 	(ts->black_gesture_support || ts->fingerprint_underscreen_support)
 #define TP_ALL_GESTURE_ENABLE  \
@@ -1189,20 +1184,6 @@ static irqreturn_t tp_irq_thread_fn(int irq, void *dev_id)
 {
 	struct touchpanel_data *ts = (struct touchpanel_data *)dev_id;
 
-	/*for qaulcomn to stop cpu go to C4 idle state*/
-#ifdef CONFIG_TOUCHIRQ_UPDATE_QOS
-
-	if (ts->pm_qos_state && !ts->is_suspended && !ts->touch_count) {
-		ts->pm_qos_value = PM_QOS_TOUCH_WAKEUP_VALUE;
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,10,0)
-		dev_pm_qos_update_request(&ts->pm_qos_req, ts->pm_qos_value);
-#else
-		pm_qos_update_request(&ts->pm_qos_req, ts->pm_qos_value);
-#endif
-	}
-
-#endif
-
 	if (ts->ts_ops->tp_irq_throw_away) {
 		if (ts->ts_ops->tp_irq_throw_away(ts->chip_data)) {
 			goto exit;
@@ -1246,20 +1227,6 @@ static irqreturn_t tp_irq_thread_fn(int irq, void *dev_id)
 	}
 
 exit:
-
-#ifdef CONFIG_TOUCHIRQ_UPDATE_QOS
-
-	if (PM_QOS_TOUCH_WAKEUP_VALUE == ts->pm_qos_value) {
-		ts->pm_qos_value = PM_QOS_DEFAULT_VALUE;
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,10,0)
-		dev_pm_qos_update_request(&ts->pm_qos_req, ts->pm_qos_value);
-#else
-		pm_qos_update_request(&ts->pm_qos_req, ts->pm_qos_value);
-#endif
-	}
-
-#endif
-
 	return IRQ_HANDLED;
 }
 
