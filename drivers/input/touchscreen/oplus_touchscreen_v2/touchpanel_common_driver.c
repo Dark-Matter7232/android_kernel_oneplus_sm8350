@@ -2451,7 +2451,7 @@ static int tp_register_irq_func(struct touchpanel_data *ts)
 		snprintf(ts->irq_name, sizeof(ts->irq_name), "touch-%02d", ts->tp_index);
 		ret = devm_request_threaded_irq(ts->dev, ts->irq, NULL,
 						tp_irq_thread_fn,
-						ts->irq_flags | IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+						ts->irq_flags | IRQF_ONESHOT,
 						ts->irq_name, ts);
 
 		if (ret < 0) {
