@@ -150,6 +150,7 @@ static int neg_three = -3;
 static int three = 3;
 static int five = 5;
 static int fifty = 50;
+static int two_hundred_fifty_five = 255;
 const int sched_user_hint_max = 1000;
 static unsigned int ns_per_sec = NSEC_PER_SEC;
 static unsigned int one_hundred_thousand = 100000;
@@ -825,6 +826,24 @@ static struct ctl_table kern_table[] = {
 		.proc_handler	= sched_energy_aware_handler,
 		.extra1		= SYSCTL_ZERO,
 		.extra2		= SYSCTL_ONE,
+	},
+#endif
+#ifdef CONFIG_SCHED_WALT
+	{
+		.procname	= "sched_lib_name",
+		.data		= sched_lib_name,
+		.maxlen		= 512,
+		.mode		= 0644,
+		.proc_handler	= proc_dostring,
+	},
+	{
+		.procname	= "sched_lib_mask_force",
+		.data		= &sched_lib_mask_force,
+		.maxlen		= sizeof(unsigned int),
+		.mode		= 0644,
+		.proc_handler	= proc_douintvec_minmax,
+		.extra1		= SYSCTL_ZERO,
+		.extra2		= &two_hundred_fifty_five,
 	},
 #endif
 #ifdef CONFIG_PROVE_LOCKING

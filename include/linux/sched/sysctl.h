@@ -171,4 +171,7 @@ extern int sched_energy_aware_handler(struct ctl_table *table, int write,
 				 loff_t *ppos);
 #endif
 
+static char sched_lib_name[512];
+static unsigned int sched_lib_mask_force;
+
 #endif /* _LINUX_SCHED_SYSCTL_H */
