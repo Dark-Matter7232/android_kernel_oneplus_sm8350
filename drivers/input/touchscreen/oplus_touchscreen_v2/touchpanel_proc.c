@@ -1087,7 +1087,7 @@ static ssize_t proc_dir_control_read(struct file *file, char __user *user_buf,
 static ssize_t proc_dir_control_write(struct file *file,
 				      const char __user *buffer, size_t count, loff_t *ppos)
 {
-	char buf[8] = {0};
+	char buf[8] = {1};
 	int temp = 0;
 	int ret = 0;
 	struct touchpanel_data *ts = PDE_DATA(file_inode(file));
