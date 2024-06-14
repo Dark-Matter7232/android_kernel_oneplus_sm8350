@@ -256,6 +256,8 @@ if [ -f /sys/devices/soc0/select_image ]; then
     echo $oem_version > /sys/devices/soc0/image_crm_version
 fi
 
+setprop ro.dalvik.vm.enable_uffd_gc true
+
 setprop vendor.post_boot.parsed 1
 
 #liochen@SYSTEM, 2020/11/02, Add for enable ufs performance
