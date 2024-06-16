@@ -15,9 +15,9 @@
 int32_t cam_actuator_parse_dt(struct cam_actuator_ctrl_t *a_ctrl,
 	struct device *dev)
 {
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	int32_t                         i;
-#endif
+// #ifdef OPLUS_FEATURE_CAMERA_COMMON
+// 	int32_t                         i;
+// #endif
 	int32_t                         rc = 0;
 	struct cam_hw_soc_info          *soc_info = &a_ctrl->soc_info;
 	struct cam_actuator_soc_private *soc_private =

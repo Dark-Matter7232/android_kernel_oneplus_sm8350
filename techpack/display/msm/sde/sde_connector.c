@@ -368,7 +368,7 @@ static int sde_backlight_setup(struct sde_connector *c_conn,
 					struct drm_device *dev)
 {
 	struct backlight_properties props;
-	struct dsi_display *display;
+	struct dsi_display *display = NULL;
 	struct dp_panel *dp_panel;
 	struct dsi_backlight_config *dsi_bl_config;
 	struct dsi_backlight_config *bl_config;
@@ -918,7 +918,7 @@ static int _sde_connector_update_bl_scale(struct sde_connector *c_conn)
 	u32 bl_scale, bl_scale_sv;
 
 #ifdef OPLUS_BUG_STABILITY
-	struct backlight_device *bd;
+	struct backlight_device *bd = NULL;
 #endif /* OPLUS_BUG_STABILITY */
 
 	if (!c_conn) {
