@@ -27,6 +27,7 @@ AKVRD="$AK3_DIR/vendor_ramdisk/lib/modules"
 # Device Tree Blob Directory
 DTB_PATH="$KERNEL_DIR/work/arch/arm64/boot/dts"
 DTBO_PATH="$KERNEL_DIR/work/arch/arm64/boot"
+KSU="0"
 
 ############################################################################
 
@@ -91,7 +92,8 @@ usage()
 		--obj        Builds specified objects.
 		--regen      Regenerates defconfig
 		--log        Builds logs saved to log.txt in current dir.
-		--silence    Silence shell output of Kbuild".
+		--silence    Silence shell output of Kbuild.
+		--KSU        Enable KernelSU".
 	exit 2
 }
 
@@ -136,7 +138,7 @@ config_generator()
 {
 	#########################  .config GENERATOR  ############################
 	if [[ -z $CODENAME ]]; then
-		error 'Codename not present connot proceed'
+		error 'Codename not present cannot proceed'
 		exit 1
 	fi
 
@@ -234,11 +236,16 @@ kernel_builder()
 	# Build Start
 	BUILD_START=$(date +"%s")
 
+	if [[ $KSU == 1 ]]; then
+		sed -i 's/# CONFIG_KSU is not set/CONFIG_KSU=y/' work/.config
+		sed -i '/CONFIG_KSU=y/a # CONFIG_KSU_DEBUG is not set' work/.config
+	fi
+
 	source work/.config
 	MOD_NAME="$(muke kernelrelease -s)"
 	KERNEL_VERSION=$(echo "$MOD_NAME" | cut -c -7)
 
-	inform --force "
+	inform_message="
 	*************Build Triggered*************
 
 	CI: $KBUILD_HOST
@@ -253,6 +260,13 @@ kernel_builder()
 
 	*****************************************
 	"
+
+	if [[ $KSU == 1 ]]; then
+		inform_message+="KernelSU: Enabled\n"
+		inform_message+="	*****************************************"
+	fi
+
+	inform --force "$inform_message"
 
 	# Compile
 	if [[ $LOG != 1 ]]; then
@@ -271,7 +285,8 @@ kernel_builder()
 	# Build End
 	BUILD_END=$(date +"%s")
 
-	DIFF=$(("$BUILD_END" - "$BUILD_START"))
+	# Calculate Build Time
+	DIFF=$((BUILD_END - BUILD_START))
 
 	zipper
 	############################################################################
@@ -304,10 +319,14 @@ zipper()
 
 	cd "$AK3_DIR" || exit
 
-	zip -r9 "CosmicFresh-$LAST_HASH.zip" *
+	if [[ $KSU == 1 ]]; then
+		zip -r9 "CosmicFresh-$LAST_HASH-KSU.zip" *
+	else
+		zip -r9 "CosmicFresh-$LAST_HASH.zip" *
+	fi
 
-	inform --force "
-	***************AtomX-Kernel**************
+	inform_message="
+	***************CosmicFresh-Kernel**************
 
 	CI: $KBUILD_HOST
 	Core count: $(nproc)
@@ -318,7 +337,6 @@ zipper()
 	Kernel Name: $MOD_NAME
 	Linux Version: $KERNEL_VERSION
 	Build Date: $(date +"%Y-%m-%d %H:%M")
-
 	***********last commit details***********
 
 	Last commit (name): $LAST_COMMIT
@@ -327,12 +345,19 @@ zipper()
 	*****************************************
 	"
 
+	if [[ $KSU == 1 ]]; then
+		inform_message+="KernelSU: Enabled\n"
+		inform_message+="	*****************************************"
+	fi
+
+	inform --force "$inform_message"
+
 	cp ./*.zip "$KERNEL_DIR"/out
 
 	cd "$KERNEL_DIR" || exit
+	success "Kernel zip built successfully, take a look at out folder
 
-	success "build completed in $((DIFF / 60)).$((DIFF % 60)) mins"
-
+	  Build completed in $((DIFF / 60)) minute(s) and $((DIFF % 60)) seconds."
 	############################################################################
 }
 
@@ -401,6 +426,9 @@ for arg in "$@"; do
 			;;
 		"--regen")
 			config_regenerator
+			;;
+		"--KSU")
+			KSU=1
 			;;
 		"--log" | "--silence")
 			;;
